@@ -1,6 +1,6 @@
-# @react-component/father-plugin
+# @rc-component/father-plugin
 
-[![NPM version](https://img.shields.io/npm/v/@react-component/father-plugin.svg?style=flat)](https://npmjs.org/package/@react-component/father-plugin) [![NPM downloads](http://img.shields.io/npm/dm/@react-component/father-plugin.svg?style=flat)](https://npmjs.org/package/@react-component/father-plugin)
+[![NPM version](https://img.shields.io/npm/v/@rc-component/father-plugin.svg?style=flat)](https://npmjs.org/package/@rc-component/father-plugin) [![NPM downloads](http://img.shields.io/npm/dm/@rc-component/father-plugin.svg?style=flat)](https://npmjs.org/package/@rc-component/father-plugin)
 
 The father plugin for all react-component projects.
 
