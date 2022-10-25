@@ -6,6 +6,8 @@ export default (api: IApi) => {
     Object.assign(memo, {
       esm: {
         output: 'es',
+        // transform all rc-xx/lib to rc-xx/es for esm build
+        extraBabelPlugins: [require.resolve('./babelPluginImportLib2Es')],
       },
       cjs: {
         // specific platform to browser, father 4 build cjs for node by default
