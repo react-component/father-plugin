@@ -4,7 +4,25 @@
 
 The father plugin for all react-component projects.
 
-## Install
+## Usage
+
+Install this plugin in `devDependencies`:
+
+```bash
+$ npm i @rc-component/father-plugin -D
+```
+
+Register it in `.fatherrc.ts`:
+
+```ts
+import { defineConfig } from 'father';
+
+export default defineConfig({
+  plugins: ['@rc-component/father-plugin'],
+});
+```
+
+## Development
 
 ```bash
 $ pnpm install
