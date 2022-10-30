@@ -1,6 +1,24 @@
 import type { IApi } from 'father';
 
 export default (api: IApi) => {
+  // Compile break if export type without consistent
+  api.onStart(() => {
+    if (api.name !== 'build') {
+      return;
+    }
+
+    const { execSync } = require('child_process');
+    execSync(
+      "npx eslint src/** --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'",
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: [process.stdin, process.stdout, process.stderr],
+        encoding: 'utf-8',
+      },
+    );
+  });
+
   // modify default build config for all rc projects
   api.modifyDefaultConfig((memo) => {
     Object.assign(memo, {
