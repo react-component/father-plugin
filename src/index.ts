@@ -9,7 +9,7 @@ export default (api: IApi) => {
 
     const { execSync } = require('child_process');
     execSync(
-      "npx eslint src/ --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'",
+      "npx eslint src/ --ext .tsx,.ts --rule \"@typescript-eslint/consistent-type-exports: error\"",
       {
         cwd: process.cwd(),
         env: process.env,
