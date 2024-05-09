@@ -1,8 +1,9 @@
 {
   "name": "@rc-component/father-plugin",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "The father plugin for all react-component projects",
   "keywords": [],
+  "repository": "https://github.com/react-component/father-plugin.git",
   "license": "MIT",
   "main": "dist/index.js",
   "files": [
