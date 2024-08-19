@@ -7,9 +7,12 @@ export default (api: IApi) => {
       return;
     }
 
+    const inputFolder =
+      api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
+
     const { execSync } = require('child_process');
     execSync(
-      "npx eslint src/ --ext .tsx,.ts --rule \"@typescript-eslint/consistent-type-exports: error\"",
+      `npx eslint ${inputFolder} --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'`,
       {
         cwd: process.cwd(),
         env: process.env,
