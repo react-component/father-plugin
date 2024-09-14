@@ -3,13 +3,9 @@ import { exec, execSync } from 'child_process';
 
 // 检查是否已安装 npm 包
 function checkNpmPackageInstalled(packageName: string) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve) => {
     exec(`npm list --depth=0 ${packageName}`, (error: Error) => {
-      if (error) {
-        reject(false); // 未安装
-      } else {
-        resolve(true); // 已安装
-      }
+      resolve(!error);
     });
   });
 }
