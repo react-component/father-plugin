@@ -11,15 +11,19 @@ export default (api: IApi) => {
       api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
 
     const { execSync } = require('child_process');
-    execSync(
-      `npx eslint ${inputFolder} --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'`,
-      {
-        cwd: process.cwd(),
-        env: process.env,
-        stdio: [process.stdin, process.stdout, process.stderr],
-        encoding: 'utf-8',
-      },
-    );
+    try {
+      execSync(
+        `npx eslint ${inputFolder} --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'`,
+        {
+          cwd: process.cwd(),
+          env: process.env,
+          stdio: [process.stdin, process.stdout, process.stderr],
+          encoding: 'utf-8',
+        },
+      );
+    } catch (error) {
+      console.log('ESLint is not installed, skip.');
+    }
   });
 
   // modify default build config for all rc projects
