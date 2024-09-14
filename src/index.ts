@@ -1,8 +1,18 @@
 import type { IApi } from 'father';
+import { exec, execSync } from 'child_process';
+
+// 检查是否已安装 npm 包
+function checkNpmPackageInstalled(packageName: string) {
+  return new Promise((resolve) => {
+    exec(`npm list --depth=0 ${packageName}`, (error: Error) => {
+      resolve(!error);
+    });
+  });
+}
 
 export default (api: IApi) => {
   // Compile break if export type without consistent
-  api.onStart(() => {
+  api.onStart(async () => {
     if (api.name !== 'build') {
       return;
     }
@@ -10,8 +20,8 @@ export default (api: IApi) => {
     const inputFolder =
       api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
 
-    const { execSync } = require('child_process');
-    try {
+    const isInstalled = await checkNpmPackageInstalled('eslint');
+    if (isInstalled) {
       execSync(
         `npx eslint ${inputFolder} --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'`,
         {
@@ -21,7 +31,7 @@ export default (api: IApi) => {
           encoding: 'utf-8',
         },
       );
-    } catch (error) {
+    } else {
       console.log('ESLint is not installed, skip.');
     }
   });

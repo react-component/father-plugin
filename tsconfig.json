@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "strict": true,
+    "lib": ["ES2015"],
     "skipLibCheck": true,
     "esModuleInterop": true,
     "baseUrl": "./"
