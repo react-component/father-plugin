@@ -1,5 +1,5 @@
-import type { IApi } from 'father';
 import { exec, execSync } from 'child_process';
+import type { IApi } from 'father';
 
 // 检查是否已安装 npm 包
 function checkNpmPackageInstalled(packageName: string) {
@@ -48,6 +48,9 @@ export default (api: IApi) => {
         // specific platform to browser, father 4 build cjs for node by default
         platform: 'browser',
         output: 'lib',
+      },
+      targets: {
+        chrome: 85,
       },
     } as typeof memo);
 
