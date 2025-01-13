@@ -23,7 +23,8 @@ export default (api: IApi) => {
     const isInstalled = await checkNpmPackageInstalled('eslint');
     if (isInstalled) {
       execSync(
-        `npx eslint ${inputFolder} --ext .tsx,.ts --rule '@typescript-eslint/consistent-type-exports: error'`,
+        // Requires compatibility with Windows environment
+        `npx eslint ${inputFolder} --ext .tsx,.ts --rule "@typescript-eslint/consistent-type-exports: error"`,
         {
           cwd: process.cwd(),
           env: process.env,
