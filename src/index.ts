@@ -1,5 +1,9 @@
 import { exec, execSync } from 'child_process';
 import type { IApi } from 'father';
+import fs from 'fs-extra';
+import path from 'path';
+
+const cwd = process.cwd();
 
 // 检查是否已安装 npm 包
 function checkNpmPackageInstalled(packageName: string) {
@@ -17,6 +21,13 @@ export default (api: IApi) => {
       return;
     }
 
+    // Break if current project not install `@rc-component/np`
+    const packageJson = await fs.readJson(path.join(cwd, 'package.json'));
+    if (!packageJson.devDependencies['@rc-component/np']) {
+      console.log('Please install `@rc-component/np` instead of `np`.');
+      process.exit(1);
+    }
+
     const inputFolder =
       api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
 
@@ -26,7 +37,7 @@ export default (api: IApi) => {
         // Requires compatibility with Windows environment
         `npx eslint ${inputFolder} --ext .tsx,.ts --rule "@typescript-eslint/consistent-type-exports: error"`,
         {
-          cwd: process.cwd(),
+          cwd,
           env: process.env,
           stdio: [process.stdin, process.stdout, process.stderr],
           encoding: 'utf-8',

@@ -1,6 +1,6 @@
 {
   "name": "@rc-component/father-plugin",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "The father plugin for all react-component projects",
   "keywords": [],
   "repository": "https://github.com/react-component/father-plugin.git",
@@ -33,6 +33,9 @@
       "eslint --fix",
       "prettier --parser=typescript --write"
     ]
+  },
+  "dependencies": {
+    "fs-extra": "^11.3.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
