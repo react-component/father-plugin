@@ -35,6 +35,7 @@
     ]
   },
   "dependencies": {
+    "@typescript-eslint/eslint-plugin": "^8.28.0",
     "@typescript-eslint/parser": "^8.28.0",
     "eslint": "^8.23.0",
     "fs-extra": "^11.3.0"

@@ -46,7 +46,9 @@ export default (api: IApi) => {
         parserOptions: {
           ecmaVersion: 2021,
           sourceType: 'module',
+          project: './tsconfig.json',
         },
+        plugins: ['@typescript-eslint'],
       },
       extensions: ['tsx', 'ts'],
     });
