@@ -23,8 +23,10 @@ export default (api: IApi) => {
     // Break if current project not install `@rc-component/np`
     const packageJson = await fs.readJson(path.join(cwd, 'package.json'));
 
-    // Break if current project not install `@rc-component/np`
-    if (!checkNpmPackageDependency(packageJson, '@rc-component/np')) {
+    if (
+      checkNpmPackageDependency(packageJson, 'np') &&
+      !checkNpmPackageDependency(packageJson, '@rc-component/np')
+    ) {
       console.log('Please install `@rc-component/np` instead of `np`.');
       process.exit(1);
     }
