@@ -1,4 +1,5 @@
-import { execSync } from 'child_process';
+import chalk from 'chalk';
+import { ESLint } from 'eslint';
 import type { IApi } from 'father';
 import fs from 'fs-extra';
 import path from 'path';
@@ -20,6 +21,8 @@ export default (api: IApi) => {
       return;
     }
 
+    console.log('Check Typescript exports...');
+
     // Break if current project not install `@rc-component/np`
     const packageJson = await fs.readJson(path.join(cwd, 'package.json'));
 
@@ -34,41 +37,95 @@ export default (api: IApi) => {
     const inputFolder =
       api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
 
-    const isEslintInstalled = checkNpmPackageDependency(packageJson, 'eslint');
-    if (isEslintInstalled) {
-      execSync(
-        // Requires compatibility with Windows environment
-        `npx eslint ${inputFolder} --ext .tsx,.ts --rule "@typescript-eslint/consistent-type-exports: error"`,
-        {
-          cwd,
-          env: process.env,
-          stdio: [process.stdin, process.stdout, process.stderr],
-          encoding: 'utf-8',
+    const eslint = new ESLint({
+      useEslintrc: false,
+      overrideConfig: {
+        rules: {
+          '@typescript-eslint/consistent-type-exports': ['error'],
         },
-      );
-    } else {
-      console.log('ESLint is not installed, skip.');
+        parser: '@typescript-eslint/parser',
+        parserOptions: {
+          ecmaVersion: 2021,
+          sourceType: 'module',
+          project: './tsconfig.json',
+        },
+        plugins: ['@typescript-eslint'],
+      },
+      extensions: ['tsx', 'ts'],
+    });
+
+    const results = await eslint.lintFiles([inputFolder]);
+
+    // Collect eslint errors
+    interface ErrorInfo {
+      line: number;
+      text: string;
+      error: string;
+    }
+    const errorMessages: {
+      filePath: string;
+      errors: ErrorInfo[];
+    }[] = [];
+
+    results.forEach((result) => {
+      const fullText = result.source || '';
+      const textLines = fullText.split('\n');
+
+      const errorInfos: ErrorInfo[] = [];
+
+      result.messages.forEach((message) => {
+        errorInfos.push({
+          line: message.line,
+          text: textLines[message.line - 1],
+          error: message.message,
+        });
+      });
+
+      if (errorInfos.length) {
+        errorMessages.push({
+          filePath: result.filePath,
+          errors: errorInfos,
+        });
+      }
+    });
+
+    if (errorMessages.length) {
+      console.log('');
+      console.log(chalk.red('Eslint errors:'));
+
+      errorMessages.forEach((error) => {
+        console.log(chalk.yellow(`${error.filePath}`));
+        error.errors.forEach((item) => {
+          console.log(`${item.line}: ${item.text.trim()}`);
+          console.log(chalk.gray(`${item.error}`));
+        });
+        console.log('');
+      });
+
+      process.exit(1);
     }
   });
 
   // modify default build config for all rc projects
-  api.modifyDefaultConfig((memo) => {
-    Object.assign(memo, {
-      esm: {
-        output: 'es',
-        // transform all rc-xx/lib to rc-xx/es for esm build
-        extraBabelPlugins: [require.resolve('./babelPluginImportLib2Es')],
-      },
-      cjs: {
-        // specific platform to browser, father 4 build cjs for node by default
-        platform: 'browser',
-        output: 'lib',
-      },
-      targets: {
-        chrome: 85,
-      },
-    } as typeof memo);
+  if (!process.env.CHECK_TS_ONLY) {
+    api.modifyDefaultConfig((memo) => {
+      Object.assign(memo, {
+        esm: {
+          output: 'es',
+          // transform all rc-xx/lib to rc-xx/es for esm build
+          extraBabelPlugins: [require.resolve('./babelPluginImportLib2Es')],
+        },
+        cjs: {
+          // specific platform to browser, father 4 build cjs for node by default
+          platform: 'browser',
+          output: 'lib',
+        },
+        targets: {
+          chrome: 85,
+        },
+      } as typeof memo);
 
-    return memo;
-  });
+      return memo;
+    });
+  }
 };

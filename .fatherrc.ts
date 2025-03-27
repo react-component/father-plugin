@@ -1,8 +1,7 @@
 import { defineConfig } from 'father';
+import path from 'path';
 
 export default defineConfig({
   cjs: { output: 'dist' },
-  targets: {
-    chrome: 85,
-  },
+  plugins: [path.resolve(__dirname, 'src')],
 });
