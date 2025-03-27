@@ -1,6 +1,6 @@
 {
   "name": "@rc-component/father-plugin",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "description": "The father plugin for all react-component projects",
   "keywords": [],
   "repository": "https://github.com/react-component/father-plugin.git",
@@ -14,7 +14,7 @@
     "dev": "father dev",
     "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
     "prepare": "husky install",
-    "prepublishOnly": "father doctor && npm run build"
+    "prepublishOnly": "cross-env CHECK_TS_ONLY=1 father doctor && npm run build"
   },
   "commitlint": {
     "extends": [
