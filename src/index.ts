@@ -74,6 +74,10 @@ export default (api: IApi) => {
       const errorInfos: ErrorInfo[] = [];
 
       result.messages.forEach((message) => {
+        if (/Definition for rule .* was not found./.test(message.message)) {
+          return;
+        }
+
         errorInfos.push({
           line: message.line,
           text: textLines[message.line - 1],
