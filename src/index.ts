@@ -1,3 +1,4 @@
+import chalk from 'chalk';
 import { ESLint } from 'eslint';
 import type { IApi } from 'father';
 import fs from 'fs-extra';
@@ -20,7 +21,7 @@ export default (api: IApi) => {
       return;
     }
 
-    console.log('Use RC Father Plugin...');
+    console.log('Check Typescript exports...');
 
     // Break if current project not install `@rc-component/np`
     const packageJson = await fs.readJson(path.join(cwd, 'package.json'));
@@ -54,26 +55,55 @@ export default (api: IApi) => {
     });
 
     const results = await eslint.lintFiles([inputFolder]);
-    const totalErrors = results.reduce((sum, item) => sum + item.errorCount, 0);
-    console.log('Total error count:', totalErrors);
-    console.log('results', results);
-    console.log(results[0].messages);
 
-    // const isEslintInstalled = checkNpmPackageDependency(packageJson, 'eslint');
-    // if (isEslintInstalled) {
-    //   execSync(
-    //     // Requires compatibility with Windows environment
-    //     `npx eslint ${inputFolder} --ext .tsx,.ts --rule "@typescript-eslint/consistent-type-exports: error"`,
-    //     {
-    //       cwd,
-    //       env: process.env,
-    //       stdio: [process.stdin, process.stdout, process.stderr],
-    //       encoding: 'utf-8',
-    //     },
-    //   );
-    // } else {
-    //   console.log('ESLint is not installed, skip.');
-    // }
+    // Collect eslint errors
+    interface ErrorInfo {
+      line: number;
+      text: string;
+      error: string;
+    }
+    const errorMessages: {
+      filePath: string;
+      errors: ErrorInfo[];
+    }[] = [];
+
+    results.forEach((result) => {
+      const fullText = result.source || '';
+      const textLines = fullText.split('\n');
+
+      const errorInfos: ErrorInfo[] = [];
+
+      result.messages.forEach((message) => {
+        errorInfos.push({
+          line: message.line,
+          text: textLines[message.line - 1],
+          error: message.message,
+        });
+      });
+
+      if (errorInfos.length) {
+        errorMessages.push({
+          filePath: result.filePath,
+          errors: errorInfos,
+        });
+      }
+    });
+
+    if (errorMessages.length) {
+      console.log('');
+      console.log(chalk.red('Eslint errors:'));
+
+      errorMessages.forEach((error) => {
+        console.log(chalk.yellow(`${error.filePath}`));
+        error.errors.forEach((item) => {
+          console.log(`${item.line}: ${item.text.trim()}`);
+          console.log(chalk.gray(`${item.error}`));
+        });
+        console.log('');
+      });
+
+      process.exit(1);
+    }
   });
 
   // modify default build config for all rc projects
