@@ -10,7 +10,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "father build",
+    "build": "cross-env CHECK_TS_ONLY=1 father build",
     "dev": "father dev",
     "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
     "prepare": "husky install",
@@ -35,13 +35,17 @@
     ]
   },
   "dependencies": {
+    "@typescript-eslint/parser": "^8.28.0",
+    "eslint": "^8.23.0",
     "fs-extra": "^11.3.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
+    "@types/eslint": "^8.56.12",
+    "@types/fs-extra": "^11.0.4",
     "@umijs/lint": "^4",
-    "eslint": "^8.23.0",
+    "cross-env": "^7.0.3",
     "father": "^4.1.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
