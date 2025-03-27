@@ -39,7 +39,9 @@ export default (api: IApi) => {
 
     const eslint = new ESLint({
       useEslintrc: false,
+      errorOnUnmatchedPattern: false,
       overrideConfig: {
+        ignorePatterns: ['__tests__', 'demo', 'locale'],
         rules: {
           '@typescript-eslint/consistent-type-exports': ['error'],
         },
