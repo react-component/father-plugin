@@ -44,6 +44,7 @@
     "@types/eslint": "^8.56.12",
     "@types/fs-extra": "^11.0.4",
     "@umijs/lint": "^4",
+    "eslint": "^8.23.0",
     "father": "^4.1.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
