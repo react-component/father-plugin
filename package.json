@@ -1,6 +1,6 @@
 {
   "name": "@rc-component/father-plugin",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "description": "The father plugin for all react-component projects",
   "keywords": [],
   "repository": "https://github.com/react-component/father-plugin.git",
