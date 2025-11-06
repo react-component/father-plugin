@@ -13,10 +13,10 @@ importers:
         version: 11.3.2
     devDependencies:
       '@commitlint/cli':
-        specifier: 17.1.2
+        specifier: ^17.1.2
         version: 17.1.2
       '@commitlint/config-conventional':
-        specifier: 17.1.0
+        specifier: ^17.1.0
         version: 17.1.0
       '@types/eslint':
         specifier: ^8.56.12
