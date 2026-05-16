@@ -5,6 +5,33 @@ import path from 'path';
 
 const cwd = process.cwd();
 
+const restrictedPackageDirectoryImports = [
+  '@rc-component/*/es',
+  '@rc-component/*/es/**',
+  '@rc-component/*/lib',
+  '@rc-component/*/lib/**',
+  'rc-*/es',
+  'rc-*/es/**',
+  'rc-*/lib',
+  'rc-*/lib/**',
+];
+
+const eslintRulesString = JSON.stringify({
+  '@typescript-eslint/consistent-type-exports': 'error',
+  'no-restricted-imports': [
+    'error',
+    {
+      patterns: [
+        {
+          group: restrictedPackageDirectoryImports,
+          message:
+            'Do not import package internals from es/lib. Import from the package root.',
+        },
+      ],
+    },
+  ],
+}).replace(/"/g, '\\"');
+
 // 检查 package.json 中是否有指定的 npm 包依赖
 function checkNpmPackageDependency(packageJson: any, packageName: string) {
   return !!(
@@ -20,7 +47,7 @@ export default (api: IApi) => {
       return;
     }
 
-    console.log('Check Typescript exports...');
+    console.log('Check Typescript exports and rc package directory imports...');
 
     // Break if current project not install `@rc-component/np`
     const packageJson = await fs.readJson(path.join(cwd, 'package.json'));
@@ -40,7 +67,7 @@ export default (api: IApi) => {
     if (isEslintInstalled) {
       execSync(
         // Requires compatibility with Windows environment
-        `npx eslint ${inputFolder} --ext .tsx,.ts --rule "@typescript-eslint/consistent-type-exports: error"`,
+        `npx eslint ${inputFolder} --ext .tsx,.ts --rule "${eslintRulesString}"`,
         {
           cwd,
           env: process.env,
