@@ -12,7 +12,7 @@
   </p>
 </div>
 
-<p align="center">English | [简体中文](./README.zh-CN.md)</p>
+<p align="center">English | <a href="./README.zh-CN.md">简体中文</a></p>
 
 ## Highlights
 
@@ -47,7 +47,7 @@ export default defineConfig({
 ## Development
 
 ```bash
-npm install
+ut install
 npm run lint
 npm run build
 ```
