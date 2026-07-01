@@ -47,7 +47,7 @@ export default defineConfig({
 ## 本地开发
 
 ```bash
-ut install
+npm install
 npm run lint
 npm run build
 ```

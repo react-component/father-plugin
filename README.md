@@ -47,7 +47,7 @@ export default defineConfig({
 ## Development
 
 ```bash
-ut install
+npm install
 npm run lint
 npm run build
 ```
