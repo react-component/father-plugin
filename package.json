@@ -1,7 +1,7 @@
 {
   "name": "@rc-component/father-plugin",
   "version": "2.2.0",
-  "description": "The father plugin for all react-component projects",
+  "description": "🧱 Shared father build plugin for rc-component packages.",
   "keywords": [],
   "repository": "https://github.com/react-component/father-plugin.git",
   "license": "MIT",
@@ -12,9 +12,10 @@
   "scripts": {
     "build": "father build",
     "dev": "father dev",
+    "lint": "npm run lint:es",
     "lint:es": "eslint \"{src,test}/**/*.{js,jsx,ts,tsx}\"",
-    "prepare": "husky install",
-    "prepublishOnly": "father doctor && npm run build"
+    "prepare": "husky",
+    "prepublishOnly": "father doctor && npm run build && rc-np"
   },
   "commitlint": {
     "extends": [
@@ -40,16 +41,22 @@
   "devDependencies": {
     "@commitlint/cli": "^17.1.2",
     "@commitlint/config-conventional": "^17.1.0",
-    "@types/eslint": "^8.56.12",
+    "@eslint/js": "^9.39.4",
+    "@rc-component/np": "^1.0.4",
     "@types/fs-extra": "^11.0.4",
-    "@umijs/lint": "^4",
-    "eslint": "^8.23.0",
-    "father": "^4.1.0",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1",
-    "prettier-plugin-organize-imports": "^3.0.0",
-    "prettier-plugin-packagejson": "^2.2.18"
+    "eslint": "^9.39.4",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jest": "^29.15.4",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "father": "^4.6.24",
+    "globals": "^17.7.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.8",
+    "prettier": "^3.9.4",
+    "prettier-plugin-organize-imports": "^4.3.0",
+    "prettier-plugin-packagejson": "^3.0.2",
+    "typescript-eslint": "^8.62.1"
   },
   "peerDependencies": {
     "father": "^4.0.0"

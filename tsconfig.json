@@ -2,6 +2,7 @@
   "compilerOptions": {
     "strict": true,
     "lib": ["ES2015"],
+    "ignoreDeprecations": "6.0",
     "skipLibCheck": true,
     "esModuleInterop": true,
     "baseUrl": "./"

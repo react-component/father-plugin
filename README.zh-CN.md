@@ -1,7 +1,7 @@
 <div align="center">
   <h1>@rc-component/father-plugin</h1>
-  <p><sub><a href="https://ant.design"><img alt="Ant Design" height="14" src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" style="vertical-align: -0.125em;" /></a> Part of the Ant Design ecosystem.</sub></p>
-  <p>🧱 Shared father build plugin for rc-component packages.</p>
+  <p><sub><a href="https://ant.design"><img alt="Ant Design" height="14" src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg" style="vertical-align: -0.125em;" /></a> Ant Design 生态的一部分。</sub></p>
+  <p>🧱 rc-component 包共享的 father 构建插件。</p>
 
   <p>
     <a href="https://npmjs.org/package/@rc-component/father-plugin"><img alt="NPM version" src="https://img.shields.io/npm/v/@rc-component/father-plugin.svg?style=flat-square"></a>
@@ -12,23 +12,23 @@
   </p>
 </div>
 
-<p align="center">English | <a href="./README.zh-CN.md">简体中文</a></p>
+<p align="center"><a href="./README.md">English</a> | 简体中文</p>
 
-## Highlights
+## 亮点
 
-| Area    | Support                                               |
-| ------- | ----------------------------------------------------- |
-| Purpose | Shared father build plugin for rc-component packages. |
-| Package | `@rc-component/father-plugin`                         |
-| Release | `@rc-component/np` / `rc-np`                          |
+| 方向 | 支持                                    |
+| ---- | --------------------------------------- |
+| 定位 | rc-component 包共享的 father 构建插件。 |
+| 包名 | `@rc-component/father-plugin`           |
+| 发布 | `@rc-component/np` / `rc-np`            |
 
-## Install
+## 安装
 
 ```bash
 npm install @rc-component/father-plugin --save-dev
 ```
 
-## Usage
+## 用法
 
 ```ts | pure
 import { defineConfig } from 'father';
@@ -40,11 +40,11 @@ export default defineConfig({
 
 ## API
 
-| Option    | Description                                              |
-| --------- | -------------------------------------------------------- |
-| `plugins` | Register `@rc-component/father-plugin` in father config. |
+| 名称      | 说明                                                 |
+| --------- | ---------------------------------------------------- |
+| `plugins` | 在 father 配置中注册 `@rc-component/father-plugin`。 |
 
-## Development
+## 本地开发
 
 ```bash
 npm install
@@ -52,14 +52,14 @@ npm run lint
 npm run build
 ```
 
-## Release
+## 发布
 
 ```bash
 npm run prepublishOnly
 ```
 
-The release flow is handled by `@rc-component/np` through the `rc-np` command when the package uses the shared release flow.
+发布流程通过 `@rc-component/np` 提供的 `rc-np` 命令处理。
 
-## License
+## 许可证
 
-@rc-component/father-plugin is released under the [MIT](./LICENSE) license.
+@rc-component/father-plugin 基于 [MIT](./LICENSE) 协议发布。
