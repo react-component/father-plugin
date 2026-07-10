@@ -10,18 +10,10 @@ const restrictedPackageDirectoryImports = [
   '@rc-component/*/es/**',
   '@rc-component/*/lib',
   '@rc-component/*/lib/**',
-  '!@rc-component/util/es',
-  '!@rc-component/util/es/**',
-  '!@rc-component/util/lib',
-  '!@rc-component/util/lib/**',
   'rc-*/es',
   'rc-*/es/**',
   'rc-*/lib',
   'rc-*/lib/**',
-  '!rc-util/es',
-  '!rc-util/es/**',
-  '!rc-util/lib',
-  '!rc-util/lib/**',
 ];
 
 const eslintRulesString = JSON.stringify({
