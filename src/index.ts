@@ -67,7 +67,7 @@ export default (api: IApi) => {
     if (isEslintInstalled) {
       execSync(
         // Requires compatibility with Windows environment
-        `npx eslint ${inputFolder} --ext .tsx,.ts --rule "${eslintRulesString}"`,
+        `npx eslint ${inputFolder} --rule "${eslintRulesString}"`,
         {
           cwd,
           env: process.env,
