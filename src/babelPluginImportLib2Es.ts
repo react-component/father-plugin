@@ -1,19 +1,26 @@
 /**
  * migrate from https://github.com/umijs/father/blob/2.x/packages/father-build/src/importLibToEs.js
  */
-import fs from 'fs';
-import { dirname, join } from 'path';
-
 const cwd = process.cwd();
 
-function replacePath(path: any) {
-  if (path.node.source && /\/lib\//.test(path.node.source.value)) {
-    const esModule = path.node.source.value.replace('/lib/', '/es/');
-    const esPath = dirname(join(cwd, `node_modules/${esModule}`));
+export function replaceLibWithEs(moduleName: string, paths = [cwd]) {
+  if (!/\/lib\//.test(moduleName)) {
+    return moduleName;
+  }
 
-    if (fs.existsSync(esPath)) {
-      path.node.source.value = esModule;
-    }
+  const esModule = moduleName.replace('/lib/', '/es/');
+
+  try {
+    require.resolve(esModule, { paths });
+    return esModule;
+  } catch {
+    return moduleName;
+  }
+}
+
+function replacePath(path: any) {
+  if (path.node.source) {
+    path.node.source.value = replaceLibWithEs(path.node.source.value);
   }
 }
 
