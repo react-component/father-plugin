@@ -22,6 +22,8 @@
 | 包名 | `@rc-component/father-plugin`           |
 | 发布 | `@rc-component/np` / `rc-np`            |
 
+当包的 `exports.import` 指向 Father 的 ESM 输出时，插件会自动补全 Node 可解析的 JavaScript 路径、同步声明文件路径，并生成 ESM 类型标记。未声明原生 ESM 导出的包保持原有产物不变。
+
 ## 安装
 
 ```bash

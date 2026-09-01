@@ -3,6 +3,8 @@ import type { IApi } from 'father';
 import fs from 'fs-extra';
 import path from 'path';
 
+import { finalizeNativeEsmOutput, hasNativeEsmExport } from './nativeEsm';
+
 const cwd = process.cwd();
 
 const restrictedPackageDirectoryImports = [
@@ -41,6 +43,10 @@ function checkNpmPackageDependency(packageJson: any, packageName: string) {
 }
 
 export default (api: IApi) => {
+  const packageJson = fs.readJsonSync(path.join(cwd, 'package.json'));
+  const esmOutput = api.userConfig.esm?.output || 'es';
+  const nativeEsm = hasNativeEsmExport(packageJson.exports, esmOutput);
+
   // Compile break if export type without consistent
   api.onStart(async () => {
     if (api.name !== 'build') {
@@ -50,8 +56,6 @@ export default (api: IApi) => {
     console.log('Check Typescript exports and rc package directory imports...');
 
     // Break if current project not install `@rc-component/np`
-    const packageJson = await fs.readJson(path.join(cwd, 'package.json'));
-
     if (
       checkNpmPackageDependency(packageJson, 'np') &&
       !checkNpmPackageDependency(packageJson, '@rc-component/np')
@@ -80,13 +84,30 @@ export default (api: IApi) => {
     }
   });
 
+  api.onAllBuildComplete(() => {
+    if (api.name !== 'build' || !nativeEsm) {
+      return;
+    }
+
+    const output = api.config.esm?.output || esmOutput;
+    const rewriteCount = finalizeNativeEsmOutput(path.resolve(cwd, output));
+    console.log(
+      `Prepared native ESM output with ${rewriteCount} declaration specifier rewrites.`,
+    );
+  });
+
   // modify default build config for all rc projects
   api.modifyDefaultConfig((memo) => {
     Object.assign(memo, {
       esm: {
         output: 'es',
         // transform all rc-xx/lib to rc-xx/es for esm build
-        extraBabelPlugins: [require.resolve('./babelPluginImportLib2Es')],
+        extraBabelPlugins: [
+          require.resolve('./babelPluginImportLib2Es'),
+          ...(nativeEsm
+            ? [require.resolve('./babelPluginAddEsmExtensions')]
+            : []),
+        ],
       },
       cjs: {
         // specific platform to browser, father 4 build cjs for node by default

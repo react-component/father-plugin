@@ -22,6 +22,8 @@
 | Package | `@rc-component/father-plugin`                         |
 | Release | `@rc-component/np` / `rc-np`                          |
 
+Packages whose `exports.import` targets the Father ESM output automatically receive Node-compatible JavaScript specifiers, matching declaration specifiers, and an ESM package marker. Packages without native ESM exports keep their existing output unchanged.
+
 ## Install
 
 ```bash
