@@ -40,11 +40,14 @@
     "fs-extra": "^11.3.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
+    "@babel/plugin-transform-typescript": "^7.29.7",
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
     "@eslint/compat": "^2.1.0",
     "@eslint/js": "^10.0.1",
     "@rc-component/np": "^1.0.4",
+    "@types/babel__core": "^7.20.5",
     "@types/fs-extra": "^11.0.4",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",

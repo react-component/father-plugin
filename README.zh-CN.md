@@ -40,6 +40,23 @@ export default defineConfig({
 
 ## API
 
+### 原生 ESM 的默认导入
+
+ESM 的 Babel 配置会处理 `@rc-component/trigger`、`@rc-component/resize-observer` 和 `@rc-component/overflow` 的默认导入。这些依赖的 Node 入口目前仍提供转译后的 CommonJS 导出。插件只在需要的产物文件里生成兼容函数，组件源码保持普通默认导入。如果浏览器打包器选择依赖的 ESM 入口，正常的默认导出会原样返回。
+
+使用 Father 4.6.37 或更高版本构建原生 Node ESM 时，需要显式选择 Babel：
+
+```ts | pure
+export default defineConfig({
+  plugins: ['@rc-component/father-plugin'],
+  esm: { platform: 'node', transformer: 'babel', autoExtension: true },
+});
+```
+
+Father 在 `platform: 'node'` 时默认选择 esbuild；esbuild 和 SWC 不执行 `extraBabelPlugins`，本插件也不会隐式切换编译器。规则只处理这三个包根入口的默认导入，包括 `import { default as Name }`，不会改写命名导入、命名空间导入、纯类型导入、依赖的再导出或其他包。CommonJS 产物继续使用 Father 原有的兼容处理，不增加运行时依赖。
+
+这是一项过渡措施，待这些包及其依赖提供原生 ESM 入口后可移除。产物仍会在运行时检查导出，编译器无法预先确定下游解析器最终会选择哪个入口。
+
 | 名称      | 说明                                                 |
 | --------- | ---------------------------------------------------- |
 | `plugins` | 在 father 配置中注册 `@rc-component/father-plugin`。 |

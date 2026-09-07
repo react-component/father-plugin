@@ -86,7 +86,10 @@ export default (api: IApi) => {
       esm: {
         output: 'es',
         // transform all rc-xx/lib to rc-xx/es for esm build
-        extraBabelPlugins: [require.resolve('./babelPluginImportLib2Es')],
+        extraBabelPlugins: [
+          require.resolve('./babelPluginImportLib2Es'),
+          require.resolve('./babelPluginDefaultInterop'),
+        ],
       },
       cjs: {
         // specific platform to browser, father 4 build cjs for node by default

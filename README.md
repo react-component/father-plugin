@@ -40,6 +40,23 @@ export default defineConfig({
 
 ## API
 
+### Default imports in native ESM
+
+The ESM Babel configuration normalizes default imports from `@rc-component/trigger`, `@rc-component/resize-observer`, and `@rc-component/overflow`. Their Node entries currently expose transpiled CommonJS exports. A small helper is generated in each output file that needs it; component source code keeps ordinary default imports. Native ESM defaults pass through unchanged, so the same output also works when a browser bundler selects these dependencies' ESM entries.
+
+For native Node ESM with Father 4.6.37 or newer, explicitly select Babel:
+
+```ts | pure
+export default defineConfig({
+  plugins: ['@rc-component/father-plugin'],
+  esm: { platform: 'node', transformer: 'babel', autoExtension: true },
+});
+```
+
+Father normally selects esbuild for `platform: 'node'`; esbuild and SWC do not run `extraBabelPlugins`. This plugin does not silently change the chosen transformer. The rule only handles default imports from the three package roots, including `import { default as Name }`; it does not rewrite named imports, namespace imports, type-only imports, re-exports from dependencies, or other packages. CommonJS output keeps Father's normal interop handling. No runtime dependency is added.
+
+This is a compatibility bridge until these packages and their dependencies provide native ESM entries. The generated code still checks the loaded export at runtime; the compiler cannot assume which entry a downstream resolver will select.
+
 | Option    | Description                                              |
 | --------- | -------------------------------------------------------- |
 | `plugins` | Register `@rc-component/father-plugin` in father config. |
