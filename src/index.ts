@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import type { IApi } from 'father';
 import fs from 'fs-extra';
+import { createRequire } from 'module';
 import path from 'path';
 
 const cwd = process.cwd();
@@ -41,8 +42,33 @@ function checkNpmPackageDependency(packageJson: any, packageName: string) {
 }
 
 export default (api: IApi) => {
+  // Keep this separate from the shared plugin: false must only disable interop.
+  api.registerPlugins([
+    {
+      id: 'virtual: rc-cjs-default-interop',
+      key: 'cjsDefaultInterop',
+      config: {
+        default: false,
+        schema: (joi: any) => joi.boolean().strict(),
+      },
+    },
+  ]);
+
   // Compile break if export type without consistent
   api.onStart(async () => {
+    if (
+      api.config.cjsDefaultInterop === true &&
+      (api.name === 'build' || api.name === 'dev')
+    ) {
+      // Father 4 collects addJSTransformer before loading project plugins.
+      // Register after initialization, against the project's actual Father instance.
+      const projectRequire = createRequire(path.join(api.cwd, 'package.json'));
+      const { addTransformer } = projectRequire('father/dist/builder/bundless');
+      for (const id of ['babel', 'esbuild', 'swc']) {
+        addTransformer({ id, transformer: require.resolve('./transformer') });
+      }
+    }
+
     if (api.name !== 'build') {
       return;
     }
@@ -60,8 +86,7 @@ export default (api: IApi) => {
       process.exit(1);
     }
 
-    const inputFolder =
-      api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
+    const inputFolder = api.config.esm?.input || 'src/';
 
     const isEslintInstalled = checkNpmPackageDependency(packageJson, 'eslint');
     if (isEslintInstalled) {

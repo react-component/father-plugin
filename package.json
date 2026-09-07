@@ -6,8 +6,10 @@
   "repository": "https://github.com/react-component/father-plugin.git",
   "license": "MIT",
   "main": "dist/index.js",
+  "types": "types.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "types.d.ts"
   ],
   "scripts": {
     "build": "father build",
@@ -37,14 +39,22 @@
     ]
   },
   "dependencies": {
-    "fs-extra": "^11.3.0"
+    "@ampproject/remapping": "^2.3.0",
+    "acorn": "^8.18.0",
+    "cjs-module-lexer": "^2.2.1",
+    "enhanced-resolve": "^5.24.5",
+    "fs-extra": "^11.3.0",
+    "magic-string": "^0.30.21"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.7",
     "@commitlint/cli": "^21.2.0",
     "@commitlint/config-conventional": "^21.2.0",
     "@eslint/compat": "^2.1.0",
     "@eslint/js": "^10.0.1",
+    "@jridgewell/trace-mapping": "^0.3.31",
     "@rc-component/np": "^1.0.4",
+    "@swc/core": "^1.16.2",
     "@types/fs-extra": "^11.0.4",
     "eslint": "^10.6.0",
     "eslint-config-prettier": "^10.1.8",

@@ -40,9 +40,39 @@ export default defineConfig({
 
 ## API
 
-| Option    | Description                                              |
-| --------- | -------------------------------------------------------- |
-| `plugins` | Register `@rc-component/father-plugin` in father config. |
+### Default imports in native ESM
+
+`cjsDefaultInterop` is **off by default**. When omitted or `false`, the plugin does not register the interop transformer or load its inspection dependencies; existing compiler output and import semantics are preserved.
+
+Opt in for a package that needs transpiled CommonJS defaults to work in native Node ESM. With Father 4.6.37 or newer:
+
+```ts | pure
+import type {} from '@rc-component/father-plugin';
+import { defineConfig } from 'father';
+
+export default defineConfig({
+  plugins: ['@rc-component/father-plugin'],
+  cjsDefaultInterop: true,
+  esm: { platform: 'node', autoExtension: true },
+});
+```
+
+The type-only import enables the plugin's configuration types for `defineConfig`; it emits no runtime import. The switch is a top-level plugin option, separate from `esm` and `cjs`. Changing it also changes Father's per-file build cache key.
+
+When enabled, the plugin normalizes default imports from statically identifiable transpiled CommonJS dependencies in **Node ESM output only**. It resolves each package's Node **import** entry, then checks for `__esModule` and `default` exports without executing the dependency. Package names are not hardcoded: scoped packages, package subpaths, and statically identifiable CommonJS re-export entries are supported.
+
+Father keeps its default esbuild compiler for Node. The same output normalization also works with explicitly selected Babel or SWC, after their TypeScript/JSX transforms. Source maps are composed back to the original source. One small helper is generated per affected output file, so component source keeps ordinary default imports, including `import { default as Name }`.
+
+Entries identified as native ESM at build time and plain CommonJS exports stay unchanged. The rule skips named imports, namespace imports, type-only imports, relative imports, builtins, dynamic imports, and dependency re-export statements in the consuming source. Unresolved dependencies, unrecognized export structures, and output syntax unsupported by the inspection parser are left untouched. Browser-targeted and CommonJS builds keep their existing compiler output.
+
+**Enabling this option changes default-import semantics.** For a recognized CommonJS dependency, `import pkg from 'legacy'` receives its inner `default` value instead of the CommonJS exports object. Code that already calls `pkg.default()` or reads other properties of that object must be reviewed before enabling it. If a downstream resolver selects a native ESM entry after the build identified the dependency as CommonJS, the generated local variable captures the initial value; subsequent updates to that default export are not reflected. The runtime check does not preserve ESM live bindings in this case. Validate the package's supported consumers before opting in.
+
+This is a compatibility bridge until dependencies expose native ESM entries. Generated code still checks the loaded value at runtime. The parsing and resolution dependencies run only during the library build; no helper package is imported by the generated output.
+
+| Option | Default | Description |
+| --- | --- | --- |
+| `plugins` | — | Register `@rc-component/father-plugin` in father config. |
+| `cjsDefaultInterop` | `false` | Opt in to CommonJS default-import normalization for Node ESM output. |
 
 ## Development
 
