@@ -42,20 +42,22 @@ export default defineConfig({
 
 ### Default imports in native ESM
 
-The ESM Babel configuration normalizes default imports from `@rc-component/trigger`, `@rc-component/resize-observer`, and `@rc-component/overflow`. Their Node entries currently expose transpiled CommonJS exports. A small helper is generated in each output file that needs it; component source code keeps ordinary default imports. Native ESM defaults pass through unchanged, so the same output also works when a browser bundler selects these dependencies' ESM entries.
+For `esm.platform: 'node'`, the plugin normalizes default imports from statically identifiable transpiled CommonJS dependencies. It resolves each package's Node **import** entry, then checks for `__esModule` and `default` exports without executing the dependency. Package names are not hardcoded: scoped packages, package subpaths, and statically identifiable CommonJS re-export entries are supported.
 
-For native Node ESM with Father 4.6.37 or newer, explicitly select Babel:
+No additional interop option or compiler switch is needed. For native Node ESM with Father 4.6.37 or newer:
 
 ```ts | pure
 export default defineConfig({
   plugins: ['@rc-component/father-plugin'],
-  esm: { platform: 'node', transformer: 'babel', autoExtension: true },
+  esm: { platform: 'node', autoExtension: true },
 });
 ```
 
-Father normally selects esbuild for `platform: 'node'`; esbuild and SWC do not run `extraBabelPlugins`. This plugin does not silently change the chosen transformer. The rule only handles default imports from the three package roots, including `import { default as Name }`; it does not rewrite named imports, namespace imports, type-only imports, re-exports from dependencies, or other packages. CommonJS output keeps Father's normal interop handling. No runtime dependency is added.
+Father keeps its default esbuild compiler for Node. The same output normalization also works with explicitly selected Babel or SWC, after their TypeScript/JSX transforms. Source maps are composed back to the original source. One small helper is generated per affected output file, so component source keeps ordinary default imports, including `import { default as Name }`.
 
-This is a compatibility bridge until these packages and their dependencies provide native ESM entries. The generated code still checks the loaded export at runtime; the compiler cannot assume which entry a downstream resolver will select.
+Native ESM entries and plain CommonJS exports stay unchanged. The rule skips named imports, namespace imports, type-only imports, relative imports, builtins, dynamic imports, and dependency re-export statements in the consuming source. Unresolved dependencies and export structures that cannot be classified statically are left untouched. Browser-targeted and CommonJS builds keep their existing compiler output.
+
+This is a compatibility bridge until dependencies expose native ESM entries. Generated code still checks the loaded value at runtime, since downstream bundlers can select another entry. The parsing and resolution dependencies run only during the library build; no helper package is imported by the generated output.
 
 | Option    | Description                                              |
 | --------- | -------------------------------------------------------- |

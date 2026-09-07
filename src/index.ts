@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 import type { IApi } from 'father';
 import fs from 'fs-extra';
+import { createRequire } from 'module';
 import path from 'path';
 
 const cwd = process.cwd();
@@ -43,6 +44,16 @@ function checkNpmPackageDependency(packageJson: any, packageName: string) {
 export default (api: IApi) => {
   // Compile break if export type without consistent
   api.onStart(async () => {
+    if (api.name === 'build' || api.name === 'dev') {
+      // Father 4 collects addJSTransformer before loading project plugins.
+      // Register after initialization, against the project's actual Father instance.
+      const projectRequire = createRequire(path.join(api.cwd, 'package.json'));
+      const { addTransformer } = projectRequire('father/dist/builder/bundless');
+      for (const id of ['babel', 'esbuild', 'swc']) {
+        addTransformer({ id, transformer: require.resolve('./transformer') });
+      }
+    }
+
     if (api.name !== 'build') {
       return;
     }
@@ -86,10 +97,7 @@ export default (api: IApi) => {
       esm: {
         output: 'es',
         // transform all rc-xx/lib to rc-xx/es for esm build
-        extraBabelPlugins: [
-          require.resolve('./babelPluginImportLib2Es'),
-          require.resolve('./babelPluginDefaultInterop'),
-        ],
+        extraBabelPlugins: [require.resolve('./babelPluginImportLib2Es')],
       },
       cjs: {
         // specific platform to browser, father 4 build cjs for node by default
