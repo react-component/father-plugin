@@ -1,4 +1,4 @@
-import type { IJSTransformer } from 'father';
+import type { IFatherConfig, IJSTransformer } from 'father';
 import { createRequire } from 'module';
 import path from 'path';
 import defaultInterop from './defaultInterop';
@@ -12,7 +12,13 @@ const transformer: Transformer = async function (content) {
     `father/dist/builder/bundless/loaders/javascript/${this.config.transformer}`,
   );
   const result = await (original.default || original).call(this, content);
-  if (this.config.format !== 'esm' || this.config.platform !== 'node')
+  const config = this.config as typeof this.config &
+    Pick<IFatherConfig, 'cjsDefaultInterop'>;
+  if (
+    config.cjsDefaultInterop !== true ||
+    config.format !== 'esm' ||
+    config.platform !== 'node'
+  )
     return result;
   return defaultInterop(result[0], this.paths.fileAbsPath, result[1]);
 };

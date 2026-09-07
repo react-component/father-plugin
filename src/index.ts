@@ -42,9 +42,24 @@ function checkNpmPackageDependency(packageJson: any, packageName: string) {
 }
 
 export default (api: IApi) => {
+  // Keep this separate from the shared plugin: false must only disable interop.
+  api.registerPlugins([
+    {
+      id: 'virtual: rc-cjs-default-interop',
+      key: 'cjsDefaultInterop',
+      config: {
+        default: false,
+        schema: (joi: any) => joi.boolean().strict(),
+      },
+    },
+  ]);
+
   // Compile break if export type without consistent
   api.onStart(async () => {
-    if (api.name === 'build' || api.name === 'dev') {
+    if (
+      api.config.cjsDefaultInterop === true &&
+      (api.name === 'build' || api.name === 'dev')
+    ) {
       // Father 4 collects addJSTransformer before loading project plugins.
       // Register after initialization, against the project's actual Father instance.
       const projectRequire = createRequire(path.join(api.cwd, 'package.json'));

@@ -217,6 +217,7 @@ async function compile(directory, source, options = {}) {
       transformer: 'esbuild',
       format: 'esm',
       platform: 'node',
+      cjsDefaultInterop: true,
       sourcemap: true,
       ...options,
     },
@@ -270,43 +271,157 @@ test('type-only imports are removed before interop analysis', async () => {
   assert.doesNotMatch(code, /rcDefaultInterop|any-legacy-package|@example/);
 });
 
-test('returns the original compiler output for CJS and browser builds', async () => {
+test('returns the original compiler output when disabled, or for CJS and browser builds', async () => {
   const { directory } = fixture();
   const source = `import Component from 'any-legacy-package'; export default Component;`;
   const original =
     require('father/dist/builder/bundless/loaders/javascript/esbuild').default;
-  for (const options of [{ format: 'cjs' }, { platform: 'browser' }]) {
+  for (const options of [
+    { cjsDefaultInterop: undefined },
+    { cjsDefaultInterop: false },
+    { format: 'cjs' },
+    { platform: 'browser' },
+  ]) {
     const { result, context } = await compile(directory, source, options);
     assert.deepEqual(result, await original.call(context, source));
   }
 });
 
-test('a real Father build uses default esbuild with the plugin registered', async () => {
+test('a real Father build opts in with default esbuild and invalidates the cache when toggled', async () => {
   const { directory } = fixture();
   fs.mkdirSync(path.join(directory, 'src'));
   fs.writeFileSync(
     path.join(directory, 'src/index.ts'),
     `import Component from 'any-legacy-package'; export default Component;`,
   );
-  fs.writeFileSync(
-    path.join(directory, '.fatherrc.ts'),
-    `export default ${JSON.stringify({
-      plugins: [require.resolve('../dist')],
-      esm: { platform: 'node', autoExtension: true },
-    })};`,
-  );
-  const log = execFileSync(
-    process.execPath,
-    [require.resolve('father/bin/father.js'), 'build'],
-    {
-      cwd: directory,
-      env: { ...process.env, FATHER_CACHE: 'none' },
-      stdio: 'pipe',
-      encoding: 'utf8',
-    },
-  );
   const entry = path.join(directory, 'es/index.mjs');
-  assert.ok(fs.existsSync(entry), log);
-  assert.match(fs.readFileSync(entry, 'utf8'), /rcDefaultInterop/);
-  assert.equal((await import(pathToFileURL(entry).href)).default(), 'cjs');
+  let original;
+  let enabled;
+  for (const option of [undefined, true, false, true, undefined]) {
+    fs.writeFileSync(
+      path.join(directory, '.fatherrc.ts'),
+      `export default ${JSON.stringify({
+        plugins: [require.resolve('../dist')],
+        cjsDefaultInterop: option,
+        esm: { platform: 'node', autoExtension: true },
+      })};`,
+    );
+    const log = execFileSync(
+      process.execPath,
+      [require.resolve('father/bin/father.js'), 'build'],
+      {
+        cwd: directory,
+        env: {
+          ...process.env,
+          FATHER_CACHE: 'true',
+          FATHER_CACHE_DIR: path.join(directory, '.cache'),
+        },
+        stdio: 'pipe',
+        encoding: 'utf8',
+      },
+    );
+    assert.ok(fs.existsSync(entry), log);
+    // The shared plugin's output defaults still apply even when interop is false.
+    assert.ok(fs.existsSync(path.join(directory, 'lib/index.js')), log);
+    const code = fs.readFileSync(entry, 'utf8');
+    if (option === true) {
+      assert.match(code, /rcDefaultInterop/);
+      enabled ??= code;
+      assert.equal(code, enabled);
+    } else {
+      assert.doesNotMatch(code, /rcDefaultInterop/);
+      original ??= code;
+      assert.equal(code, original);
+    }
+    const consume = `import Component from './es/index.mjs';
+      console.log(${option === true ? 'Component()' : 'Component.default()'});`;
+    assert.equal(
+      execFileSync(process.execPath, ['--input-type=module', '-e', consume], {
+        cwd: directory,
+        encoding: 'utf8',
+      }).trim(),
+      'cjs',
+    );
+  }
+  assert.ok(
+    fs.readdirSync(path.join(directory, '.cache/bundless-loader')).length,
+  );
+});
+
+test('opting out preserves explicit .default access and downstream ESM live bindings', async () => {
+  for (const cjsDefaultInterop of [undefined, false]) {
+    const { directory, add, cjs } = fixture();
+    add('switch-entry', { 'index.js': cjs });
+    const source = `import Legacy from 'any-legacy-package';
+      import Value, { update } from 'switch-entry';
+      export const explicit = Legacy.default();
+      export const read = () => Value;
+      export { Value as current, update };`;
+    const {
+      result: [code],
+    } = await compile(directory, source, { cjsDefaultInterop });
+    assert.doesNotMatch(code, /rcDefaultInterop/);
+    // Model a downstream resolver choosing ESM after the library was built against CJS.
+    add(
+      'switch-entry',
+      {
+        'index.js': `let value = 1; export { value as default };
+          export function update() { value = 2; }`,
+      },
+      { type: 'module' },
+    );
+    const entry = path.join(directory, 'compiled.mjs');
+    fs.writeFileSync(entry, code);
+    const consumer = await import(pathToFileURL(entry).href);
+    assert.equal(consumer.explicit, 'cjs');
+    assert.equal(consumer.read(), 1);
+    assert.equal(consumer.current, 1);
+    consumer.update();
+    assert.equal(consumer.read(), 2);
+    assert.equal(consumer.current, 2);
+  }
+});
+
+test('the published declaration supports the opt-in in Father defineConfig', () => {
+  const { directory, add } = fixture();
+  add(
+    '@rc-component/father-plugin',
+    {
+      'types.d.ts': fs.readFileSync(
+        path.join(__dirname, '../types.d.ts'),
+        'utf8',
+      ),
+    },
+    { types: 'types.d.ts' },
+  );
+  const config = path.join(directory, '.fatherrc.ts');
+  fs.writeFileSync(
+    config,
+    `import type {} from '@rc-component/father-plugin';
+    import { defineConfig } from 'father';
+    export default defineConfig({
+      plugins: ['@rc-component/father-plugin'],
+      cjsDefaultInterop: true,
+      esm: { platform: 'node', autoExtension: true },
+    });
+    defineConfig({ cjsDefaultInterop: false });
+    defineConfig({
+      // @ts-expect-error Only booleans are accepted.
+      cjsDefaultInterop: 'true',
+    });`,
+  );
+  execFileSync(
+    process.execPath,
+    [
+      require.resolve('typescript/bin/tsc'),
+      '--noEmit',
+      '--skipLibCheck',
+      '--module',
+      'commonjs',
+      '--target',
+      'es2020',
+      config,
+    ],
+    { cwd: directory, stdio: 'pipe' },
+  );
 });

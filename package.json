@@ -6,8 +6,10 @@
   "repository": "https://github.com/react-component/father-plugin.git",
   "license": "MIT",
   "main": "dist/index.js",
+  "types": "types.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "types.d.ts"
   ],
   "scripts": {
     "build": "father build",
