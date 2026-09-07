@@ -66,20 +66,26 @@ export default function defaultInterop(
   sourceMap?: string | null,
 ): [string, (string | null)?] {
   const names = new Set<string>();
-  const program = parseModule(code, {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    allowHashBang: true,
-    onToken(token) {
-      if (
-        token.type.label === 'name' &&
-        'value' in token &&
-        typeof token.value === 'string'
-      ) {
-        names.add(token.value);
-      }
-    },
-  });
+  let program: ReturnType<typeof parseModule>;
+  try {
+    program = parseModule(code, {
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      allowHashBang: true,
+      onToken(token) {
+        if (
+          token.type.label === 'name' &&
+          'value' in token &&
+          typeof token.value === 'string'
+        ) {
+          names.add(token.value);
+        }
+      },
+    });
+  } catch {
+    // Do not reject compiler output whose syntax this inspection parser cannot handle.
+    return [code, sourceMap];
+  }
   const uid = (name: string) => {
     let candidate = `_${name}`;
     while (names.has(candidate)) candidate += '_';

@@ -166,6 +166,15 @@ test('does not execute dependencies while inspecting their exports', () => {
   assert.match(code, /rcDefaultInterop/);
 });
 
+test('preserves compiler output with syntax unsupported by the inspection parser', () => {
+  const source = `import data from './data.json' assert { type: 'json' }; export default data;`;
+  const sourceMap = '{"version":3,"sources":[],"names":[],"mappings":""}';
+  assert.deepEqual(normalize(source, '/project/entry.js', sourceMap), [
+    source,
+    sourceMap,
+  ]);
+});
+
 test('checks runtime values when a downstream resolver selects another entry', async () => {
   for (const value of [null, false, 0, 'native value']) {
     const { directory, add, cjs } = fixture();

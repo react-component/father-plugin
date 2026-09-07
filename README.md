@@ -55,7 +55,7 @@ export default defineConfig({
 
 Father keeps its default esbuild compiler for Node. The same output normalization also works with explicitly selected Babel or SWC, after their TypeScript/JSX transforms. Source maps are composed back to the original source. One small helper is generated per affected output file, so component source keeps ordinary default imports, including `import { default as Name }`.
 
-Native ESM entries and plain CommonJS exports stay unchanged. The rule skips named imports, namespace imports, type-only imports, relative imports, builtins, dynamic imports, and dependency re-export statements in the consuming source. Unresolved dependencies and export structures that cannot be classified statically are left untouched. Browser-targeted and CommonJS builds keep their existing compiler output.
+Native ESM entries and plain CommonJS exports stay unchanged. The rule skips named imports, namespace imports, type-only imports, relative imports, builtins, dynamic imports, and dependency re-export statements in the consuming source. Unresolved dependencies, unrecognized export structures, and output syntax unsupported by the inspection parser are left untouched. Browser-targeted and CommonJS builds keep their existing compiler output.
 
 This is a compatibility bridge until dependencies expose native ESM entries. Generated code still checks the loaded value at runtime, since downstream bundlers can select another entry. The parsing and resolution dependencies run only during the library build; no helper package is imported by the generated output.
 
