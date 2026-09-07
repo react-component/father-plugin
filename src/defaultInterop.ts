@@ -18,9 +18,8 @@ function commonJSExports(
   filename: string,
   seen = new Set<string>(),
 ): Set<string> {
-  if (seen.has(filename)) return new Set();
+  if (seen.has(filename) || !/\.c?js$/.test(filename)) return new Set();
   seen.add(filename);
-  if (!/\.(?:c?js)$/.test(filename)) return new Set();
 
   try {
     const { exports, reexports } = parseCommonJS(
@@ -144,16 +143,15 @@ ${declarations.join('\n')}
   const map = sourceMap
     ? remapping(
         [
-          JSON.parse(
-            output
-              .generateMap({
-                source: importer,
-                includeContent: true,
-                hires: true,
-              })
-              .toString(),
-          ),
-          JSON.parse(sourceMap),
+          {
+            version: 3,
+            ...output.generateDecodedMap({
+              source: importer,
+              includeContent: true,
+              hires: true,
+            }),
+          },
+          sourceMap,
         ],
         () => null,
       ).toString()

@@ -11,26 +11,37 @@ const transformer = require('../dist/transformer').default;
 
 const fixtures = [];
 afterEach(() => {
-  fixtures
-    .splice(0)
-    .forEach((directory) =>
-      fs.rmSync(directory, { recursive: true, force: true }),
-    );
+  for (const directory of fixtures.splice(0)) {
+    fs.rmSync(directory, { recursive: true, force: true });
+  }
 });
+
+function writeFile(file, content) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(
+    file,
+    typeof content === 'string' ? content : JSON.stringify(content),
+  );
+  return file;
+}
+
+function loadOutput(directory, code) {
+  const entry = writeFile(path.join(directory, 'compiled.mjs'), code);
+  return import(pathToFileURL(entry).href);
+}
 
 function fixture() {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'rc-interop-'));
   fixtures.push(directory);
   const add = (name, files, config = {}) => {
     const root = path.join(directory, 'node_modules', name);
-    fs.mkdirSync(root, { recursive: true });
-    fs.writeFileSync(
-      path.join(root, 'package.json'),
-      JSON.stringify({ name, main: 'index.js', ...config }),
-    );
+    writeFile(path.join(root, 'package.json'), {
+      name,
+      main: 'index.js',
+      ...config,
+    });
     for (const [file, code] of Object.entries(files)) {
-      fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
-      fs.writeFileSync(path.join(root, file), code);
+      writeFile(path.join(root, file), code);
     }
   };
   const cjs = `Object.defineProperty(exports, '__esModule', { value: true });
@@ -52,14 +63,11 @@ function fixture() {
     path.join(directory, 'node_modules/father'),
     'junction',
   );
-  fs.writeFileSync(
-    path.join(directory, 'package.json'),
-    JSON.stringify({
-      name: 'interop-fixture',
-      version: '1.0.0',
-      type: 'commonjs',
-    }),
-  );
+  writeFile(path.join(directory, 'package.json'), {
+    name: 'interop-fixture',
+    version: '1.0.0',
+    type: 'commonjs',
+  });
   add(
     'dual-package',
     {
@@ -78,10 +86,8 @@ function fixture() {
 }
 
 async function run(directory, source) {
-  const entry = path.join(directory, 'consumer.mjs');
   const [code] = normalize(source, path.join(directory, 'src.ts'));
-  fs.writeFileSync(entry, code);
-  return { module: await import(pathToFileURL(entry).href), code };
+  return { module: await loadOutput(directory, code), code };
 }
 
 test('handles arbitrary package names, scoped subpaths, and CommonJS re-export entries', async () => {
@@ -189,9 +195,7 @@ test('checks runtime values when a downstream resolver selects another entry', a
       { 'index.js': `export default ${JSON.stringify(value)};` },
       { type: 'module' },
     );
-    const entry = path.join(directory, 'compiled.mjs');
-    fs.writeFileSync(entry, code);
-    assert.equal((await import(pathToFileURL(entry).href)).default, value);
+    assert.equal((await loadOutput(directory, code)).default, value);
   }
 });
 
@@ -206,12 +210,10 @@ test('handles cyclic CommonJS re-exports and ignores unrecognized export structu
 });
 
 async function compile(directory, source, options = {}) {
-  const file = path.join(directory, 'entry.ts');
-  fs.writeFileSync(file, source);
-  fs.writeFileSync(
-    path.join(directory, 'tsconfig.json'),
-    JSON.stringify({ compilerOptions: { target: 'ES2020' } }),
-  );
+  const file = writeFile(path.join(directory, 'entry.ts'), source);
+  writeFile(path.join(directory, 'tsconfig.json'), {
+    compilerOptions: { target: 'ES2020' },
+  });
   const context = {
     config: {
       transformer: 'esbuild',
@@ -250,9 +252,7 @@ for (const compiler of ['esbuild', 'babel', 'swc']) {
     });
     assert.equal(position.line, 2);
     assert.ok(position.source.endsWith('entry.ts'));
-    const entry = path.join(directory, 'compiled.mjs');
-    fs.writeFileSync(entry, code);
-    assert.equal((await import(pathToFileURL(entry).href)).result, 'cjs');
+    assert.equal((await loadOutput(directory, code)).result, 'cjs');
   });
 }
 
@@ -289,8 +289,7 @@ test('returns the original compiler output when disabled, or for CJS and browser
 
 test('a real Father build opts in with default esbuild and invalidates the cache when toggled', async () => {
   const { directory } = fixture();
-  fs.mkdirSync(path.join(directory, 'src'));
-  fs.writeFileSync(
+  writeFile(
     path.join(directory, 'src/index.ts'),
     `import Component from 'any-legacy-package'; export default Component;`,
   );
@@ -298,7 +297,7 @@ test('a real Father build opts in with default esbuild and invalidates the cache
   let original;
   let enabled;
   for (const option of [undefined, true, false, true, undefined]) {
-    fs.writeFileSync(
+    writeFile(
       path.join(directory, '.fatherrc.ts'),
       `export default ${JSON.stringify({
         plugins: [require.resolve('../dist')],
@@ -370,9 +369,7 @@ test('opting out preserves explicit .default access and downstream ESM live bind
       },
       { type: 'module' },
     );
-    const entry = path.join(directory, 'compiled.mjs');
-    fs.writeFileSync(entry, code);
-    const consumer = await import(pathToFileURL(entry).href);
+    const consumer = await loadOutput(directory, code);
     assert.equal(consumer.explicit, 'cjs');
     assert.equal(consumer.read(), 1);
     assert.equal(consumer.current, 1);
@@ -394,9 +391,8 @@ test('the published declaration supports the opt-in in Father defineConfig', () 
     },
     { types: 'types.d.ts' },
   );
-  const config = path.join(directory, '.fatherrc.ts');
-  fs.writeFileSync(
-    config,
+  const config = writeFile(
+    path.join(directory, '.fatherrc.ts'),
     `import type {} from '@rc-component/father-plugin';
     import { defineConfig } from 'father';
     export default defineConfig({

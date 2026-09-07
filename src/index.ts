@@ -86,8 +86,7 @@ export default (api: IApi) => {
       process.exit(1);
     }
 
-    const inputFolder =
-      api?.config?.esm?.input || api?.config?.esm?.input || 'src/';
+    const inputFolder = api.config.esm?.input || 'src/';
 
     const isEslintInstalled = checkNpmPackageDependency(packageJson, 'eslint');
     if (isEslintInstalled) {

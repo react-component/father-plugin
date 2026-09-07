@@ -7,20 +7,17 @@ type Transformer = NonNullable<IJSTransformer['fn']>;
 
 // Delegate to Father's compiler so its JSX, aliases, targets, and source maps stay in effect.
 const transformer: Transformer = async function (content) {
-  const loadCompiler = createRequire(path.join(this.paths.cwd, 'package.json'));
-  const original = loadCompiler(
-    `father/dist/builder/bundless/loaders/javascript/${this.config.transformer}`,
-  );
-  const result = await (original.default || original).call(this, content);
-  const config = this.config as typeof this.config &
-    Pick<IFatherConfig, 'cjsDefaultInterop'>;
-  if (
-    config.cjsDefaultInterop !== true ||
-    config.format !== 'esm' ||
-    config.platform !== 'node'
-  )
-    return result;
-  return defaultInterop(result[0], this.paths.fileAbsPath, result[1]);
+  const { config, paths } = this;
+  const loadCompiler = createRequire(path.join(paths.cwd, 'package.json'));
+  const compile = loadCompiler(
+    `father/dist/builder/bundless/loaders/javascript/${config.transformer}`,
+  ).default;
+  const result = await compile.call(this, content);
+  return (config as IFatherConfig).cjsDefaultInterop === true &&
+    config.format === 'esm' &&
+    config.platform === 'node'
+    ? defaultInterop(result[0], paths.fileAbsPath, result[1])
+    : result;
 };
 
 export default transformer;
